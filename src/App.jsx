@@ -262,4 +262,59 @@ export default function App() {
 
       {/* Cart Drawer */}
       {isCartOpen && (
-        <
+        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex justify-end">
+          <div className="w-full max-w-md bg-white h-full p-6 flex flex-col justify-between shadow-2xl">
+            <div>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                  <ShoppingCart className="w-5 h-5 text-emerald-600" /> Λίστα Παραγγελίας
+                </h2>
+                <button onClick={() => setIsCartOpen(false)} className="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+              </div>
+
+              {cart.length === 0 ? (
+                <p className="text-slate-500 text-center py-8">Η λίστα σας είναι άδεια.</p>
+              ) : (
+                <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                  {cart.map((item) => (
+                    <div key={item.id} className="flex justify-between items-center border-b border-slate-100 pb-3">
+                      <div>
+                        <h4 className="font-semibold text-sm text-slate-800">{item.title}</h4>
+                        <span className="text-xs text-slate-400">Ποσότητα: {item.qty}</span>
+                      </div>
+                      <span className="font-bold text-slate-900">
+                        €{((wholesaleUnlocked ? item.wholesalePrice : item.retailPrice) * item.qty).toFixed(2)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {cart.length > 0 && (
+              <div className="border-t border-slate-200 pt-4">
+                <div className="flex justify-between items-center mb-4">
+                  <span className="font-bold text-slate-700">Σύνολο:</span>
+                  <span className="text-2xl font-black text-emerald-600">€{totalCartValue.toFixed(2)}</span>
+                </div>
+
+                <a
+                  href={`https://wa.me/?text=${generateOrderText()}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition"
+                >
+                  <Send className="w-4 h-4" /> Αποστολή στο WhatsApp
+                </a>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* PIN Modal */}
+      {showPinModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl">
+            <h3 className="text-lg font-bold text-slate-900 mb-2">Είσοδος Χονδρικής B2B</h3>
+            <p className="text-

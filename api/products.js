@@ -32,8 +32,10 @@ export default async function handler(req, res) {
         sds: row.get('SDS'),
       }));
 
-    // Επιστροφή JSON με CORS headers
+    // Caching για 10 λεπτά (600 δευτερόλεπτα) ώστε να φορτώνει αστραπιαία
+    res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=300');
     res.setHeader('Access-Control-Allow-Origin', '*');
+
     return res.status(200).json({ success: true, products });
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message });

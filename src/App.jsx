@@ -1,80 +1,13 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  Package, ShoppingCart, Lock, Unlock, Search, ShieldCheck, 
-  FileText, ArrowRight, Check, Send, Download, RefreshCw, 
-  Sparkles, Layers, SlidersHorizontal, Truck, Phone, Mail, 
-  MapPin, Clock, Award, CheckCircle2, ChevronRight
+  ShoppingCart, Lock, Unlock, Search, ShieldCheck, 
+  FileText, ArrowRight, Send, Sparkles, Truck, Phone, 
+  Mail, MapPin, Clock, Award 
 } from 'lucide-react';
 
-const INITIAL_PRODUCTS = [
-  {
-    id: "PROD-101",
-    sku: "XP-2001",
-    title: "Επαγγελματικό Ρολό Υγείας Jumbo 2-ply (12άδα)",
-    category: "Χαρτικά Επαγγελματικά",
-    packaging: "Κιβώτιο 12 Ρολά x 500g",
-    palletInfo: "36 Κιβώτια / Παλέτα",
-    retailPrice: 24.50,
-    wholesalePrice: 18.90,
-    minOrderQty: 2,
-    inStock: true,
-    ecoBadge: "Ecolabel EU",
-    sdsUrl: "#",
-    image: "https://images.unsplash.com/photo-1584556812952-905ffd0c611a?auto=format&fit=crop&q=80&w=600",
-    description: "100% κυτταρίνη υψηλής αντοχής και απορροφητικότητας. Ιδανικό για χώρους εστίασης, ξενοδοχεία και γραφεία."
-  },
-  {
-    id: "PROD-102",
-    sku: "XP-2008",
-    title: "Χειροπετσέτα Ζήτα (Z-Fold) Λευκή 2-φυλλη Premium",
-    category: "Χαρτικά Επαγγελματικά",
-    packaging: "Κιβώτιο 3000 Φύλλα (15x200)",
-    palletInfo: "40 Κιβώτια / Παλέτα",
-    retailPrice: 29.90,
-    wholesalePrice: 22.40,
-    minOrderQty: 1,
-    inStock: true,
-    ecoBadge: "ISO 9001",
-    sdsUrl: "#",
-    image: "https://images.unsplash.com/photo-1607613009820-a29f7bb81c04?auto=format&fit=crop&q=80&w=600",
-    description: "Εξαιρετικά μαλακή και απορροφητική χειροπετσέτα. Μηδενική διασπορά χνουδιού."
-  },
-  {
-    id: "PROD-103",
-    sku: "CLEAN-501",
-    title: "Επαγγελματικό Απορρυπαντικό Επιφανειών Multi-Clean 10L",
-    category: "Καθαριστικά Επιφανειών",
-    packaging: "Δοχείο 10 Λίτρων",
-    palletInfo: "60 Δοχεία / Παλέτα",
-    retailPrice: 19.80,
-    wholesalePrice: 14.50,
-    minOrderQty: 1,
-    inStock: true,
-    ecoBadge: "Safe Food Contact",
-    sdsUrl: "#",
-    image: "https://images.unsplash.com/photo-1585842378054-ee2e52f94ba2?auto=format&fit=crop&q=80&w=600",
-    description: "Συμπυκνωμένο ουδέτερο καθαριστικό για μάρμαρα, πλακάκια και ανοξείδωτες επιφάνειες. Άρωμα λεμόνι."
-  },
-  {
-    id: "PROD-104",
-    sku: "CLEAN-702",
-    title: "Υγρό Πιάτων Επαγγελματικό Extra Degreaser 5kg",
-    category: "Απορρυπαντικά Πιάτων",
-    packaging: "Δοχείο 5kg (Συσκευασία 4 τμχ)",
-    palletInfo: "48 Κιβώτια / Παλέτα",
-    retailPrice: 12.20,
-    wholesalePrice: 8.90,
-    minOrderQty: 4,
-    inStock: true,
-    ecoBadge: "Ecolabel EU",
-    sdsUrl: "#",
-    image: "https://images.unsplash.com/photo-1583947215259-38e31be8751f?auto=format&fit=crop&q=80&w=600",
-    description: "Ισχυρή σύνθεση εξουδετέρωσης λιπών για επαγγελματικά πλυντήρια και πλύσιμο στο χέρι."
-  }
-];
-
 export default function App() {
-  const [products] = useState(INITIAL_PRODUCTS);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Όλα");
   const [wholesaleUnlocked, setWholesaleUnlocked] = useState(false);
@@ -83,7 +16,45 @@ export default function App() {
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
 
-  const categories = ["Όλα", "Χαρτικά Επαγγελματικά", "Καθαριστικά Επιφανειών", "Απορρυπαντικά Πιάτων"];
+  // 1. Φόρτωση από το Vercel API
+  useEffect(() => {
+    fetch('/api/products')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.products) {
+          const mapped = data.products.map((p, idx) => ({
+            id: p.sku || `PROD-${idx}`,
+            sku: p.sku || 'N/A',
+            title: p.name || 'Προϊόν',
+            category: p.category || 'Γενικά',
+            packaging: p.package || 'Συσκευασία N/A',
+            palletInfo: 'Διαθέσιμο',
+            retailPrice: parseFloat(p.retailPrice) || 0,
+            wholesalePrice: parseFloat(p.wholesalePrice) || 0,
+            minOrderQty: 1,
+            inStock: true,
+            ecoBadge: 'ISO / Ecolabel',
+            sdsUrl: p.sds || '#',
+            image: p.image && p.image.startsWith('http') 
+              ? p.image 
+              : 'https://images.unsplash.com/photo-1584556812952-905ffd0c611a?auto=format&fit=crop&q=80&w=600',
+            description: p.description || '',
+          }));
+          setProducts(mapped);
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error('Error fetching products:', err);
+        setLoading(false);
+      });
+  }, []);
+
+  // 2. Δυναμικές κατηγορίες
+  const categories = useMemo(() => {
+    const cats = new Set(products.map((p) => p.category).filter(Boolean));
+    return ["Όλα", ...Array.from(cats)];
+  }, [products]);
 
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
@@ -284,75 +255,86 @@ export default function App() {
             </div>
           </div>
 
-          {/* Product Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredProducts.map((p) => (
-              <div key={p.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden group">
-                <div>
-                  {/* Product Image Header */}
-                  <div className="relative h-48 bg-slate-100 overflow-hidden">
-                    <img 
-                      src={p.image} 
-                      alt={p.title} 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute top-3 left-3 bg-slate-900/80 backdrop-blur-md text-white text-[10px] font-extrabold px-2.5 py-1 rounded-md tracking-wider">
-                      {p.sku}
+          {/* Product Grid / Loading State */}
+          {loading ? (
+            <div className="flex justify-center items-center py-20">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-emerald-600"></div>
+              <span className="ml-3 font-semibold text-slate-600">Φόρτωση Προϊόντων...</span>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredProducts.map((p) => (
+                <div key={p.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden group">
+                  <div>
+                    {/* Product Image Header */}
+                    <div className="relative h-48 bg-slate-100 overflow-hidden">
+                      <img 
+                        src={p.image} 
+                        alt={p.title} 
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute top-3 left-3 bg-slate-900/80 backdrop-blur-md text-white text-[10px] font-extrabold px-2.5 py-1 rounded-md tracking-wider">
+                        {p.sku}
+                      </div>
+                      <div className="absolute top-3 right-3 bg-emerald-500 text-slate-950 font-bold text-[10px] px-2 py-1 rounded-md shadow-sm">
+                        {p.ecoBadge}
+                      </div>
                     </div>
-                    <div className="absolute top-3 right-3 bg-emerald-500 text-slate-950 font-bold text-[10px] px-2 py-1 rounded-md shadow-sm">
-                      {p.ecoBadge}
+
+                    <div className="p-5">
+                      <h3 className="font-bold text-slate-900 text-base mb-2 group-hover:text-emerald-700 transition line-clamp-2">{p.title}</h3>
+                      <p className="text-xs text-slate-500 mb-4 line-clamp-2 leading-relaxed">{p.description}</p>
+
+                      <div className="space-y-1.5 bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs text-slate-600 mb-4">
+                        <div className="flex justify-between">
+                          <span className="text-slate-400">📦 Συσκευασία:</span>
+                          <span className="font-bold text-slate-700">{p.packaging}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-400">🏗️ Παλέτα:</span>
+                          <span className="font-bold text-slate-700">{p.palletInfo}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="p-5">
-                    <h3 className="font-bold text-slate-900 text-base mb-2 group-hover:text-emerald-700 transition line-clamp-2">{p.title}</h3>
-                    <p className="text-xs text-slate-500 mb-4 line-clamp-2 leading-relaxed">{p.description}</p>
+                  <div className="p-5 pt-0">
+                    <div className="flex items-baseline justify-between mb-4 border-t border-slate-100 pt-3">
+                      <div>
+                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Τιμή Μονάδας</span>
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-2xl font-black text-slate-900">
+                            €{(wholesaleUnlocked ? p.wholesalePrice : p.retailPrice).toFixed(2)}
+                          </span>
+                          {wholesaleUnlocked && p.retailPrice > 0 && (
+                            <span className="text-xs text-slate-400 line-through font-semibold">€{p.retailPrice.toFixed(2)}</span>
+                          )}
+                        </div>
+                      </div>
 
-                    <div className="space-y-1.5 bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs text-slate-600 mb-4">
-                      <div className="flex justify-between">
-                        <span className="text-slate-400">📦 Συσκευασία:</span>
-                        <span className="font-bold text-slate-700">{p.packaging}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-400">🏗️ Παλέτα:</span>
-                        <span className="font-bold text-slate-700">{p.palletInfo}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-5 pt-0">
-                  <div className="flex items-baseline justify-between mb-4 border-t border-slate-100 pt-3">
-                    <div>
-                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Τιμή Μονάδας</span>
-                      <div className="flex items-baseline gap-1.5">
-                        <span className="text-2xl font-black text-slate-900">
-                          €{(wholesaleUnlocked ? p.wholesalePrice : p.retailPrice).toFixed(2)}
-                        </span>
-                        {wholesaleUnlocked && (
-                          <span className="text-xs text-slate-400 line-through font-semibold">€{p.retailPrice.toFixed(2)}</span>
-                        )}
-                      </div>
+                      {p.sdsUrl && p.sdsUrl !== '#' && (
+                        <a
+                          href={p.sdsUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-[11px] font-semibold text-slate-500 hover:text-emerald-600 underline"
+                        >
+                          <FileText className="w-3.5 h-3.5" /> SDS PDF
+                        </a>
+                      )}
                     </div>
 
-                    <a
-                      href={p.sdsUrl}
-                      className="flex items-center gap-1 text-[11px] font-semibold text-slate-500 hover:text-emerald-600 underline"
+                    <button
+                      onClick={() => addToCart(p, p.minOrderQty)}
+                      className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm rounded-xl flex items-center justify-center gap-2 shadow-md transition"
                     >
-                      <FileText className="w-3.5 h-3.5" /> SDS PDF
-                    </a>
+                      <ShoppingCart className="w-4 h-4" /> Προσθήκη στη Λίστα
+                    </button>
                   </div>
-
-                  <button
-                    onClick={() => addToCart(p, p.minOrderQty)}
-                    className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm rounded-xl flex items-center justify-center gap-2 shadow-md transition"
-                  >
-                    <ShoppingCart className="w-4 h-4" /> Προσθήκη στη Λίστα
-                  </button>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </main>
       </div>
 

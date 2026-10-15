@@ -32,8 +32,10 @@ export default async function handler(req, res) {
         sds: row.get('SDS'),
       }));
 
-    // Caching για 10 λεπτά (600 δευτερόλεπτα) ώστε να φορτώνει αστραπιαία
-    res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=3');
+    // ΑΠΕΝΕΡΓΟΠΟΙΗΣΗ CACHE: Πάντα φρέσκα δεδομένα σε πραγματικό χρόνο
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     res.setHeader('Access-Control-Allow-Origin', '*');
 
     return res.status(200).json({ success: true, products });

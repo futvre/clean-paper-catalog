@@ -103,23 +103,47 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col justify-between">
       <div>
-        {/* Top Notification Bar */}
-        <div className="bg-slate-900 text-slate-300 text-xs py-2 px-4">
-          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
-            <div className="flex items-center gap-4">
-              <span className="flex items-center gap-1"><Truck className="w-3.5 h-3.5 text-emerald-400" /> Δωρεάν μεταφορικά για παραγγελίες εντός Αττικής &gt;€150</span>
-              <span className="hidden md:inline-flex items-center gap-1"><Award className="w-3.5 h-3.5 text-amber-400" /> Πιστοποιημένα Προϊόντα ISO & Ecolabel</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <a href="tel:2100000000" className="hover:text-white transition flex items-center gap-1"><Phone className="w-3 h-3" /> 210 0000000</a>
-              <span>•</span>
-              <span className="text-emerald-400 font-semibold">B2B Portal</span>
-            </div>
+        {/* Scrolling Announcement Banner */}
+        <div className="bg-emerald-950 text-emerald-100 text-xs py-2 overflow-hidden relative sticky top-0 z-50 shadow-sm border-b border-emerald-900">
+          <style>{`
+            @keyframes marquee {
+              0% { transform: translateX(0%); }
+              100% { transform: translateX(-50%); }
+            }
+            .animate-marquee {
+              display: inline-flex;
+              white-space: nowrap;
+              animation: marquee 30s linear infinite;
+            }
+            .animate-marquee:hover {
+              animation-play-state: paused;
+            }
+          `}</style>
+          <div className="animate-marquee flex items-center space-x-12 px-4">
+            <span className="flex items-center gap-2 font-medium">
+              <span className="text-emerald-400">🚚</span> Δωρεάν μεταφορικά για παραγγελίες εντός Αττικής &gt;€150
+            </span>
+            <span className="flex items-center gap-2 font-medium">
+              <span className="text-emerald-400">🛡️</span> Πιστοποιημένα Προϊόντα ISO &amp; Ecolabel
+            </span>
+            <span className="flex items-center gap-2 font-medium">
+              <span className="text-emerald-400">⭐</span> Επαγγελματικές Λύσεις B2B &amp; Τιμές Χονδρικής
+            </span>
+            {/* Διπλή καταχώρηση για ομαλό infinite loop */}
+            <span className="flex items-center gap-2 font-medium">
+              <span className="text-emerald-400">🚚</span> Δωρεάν μεταφορικά για παραγγελίες εντός Αττικής &gt;€150
+            </span>
+            <span className="flex items-center gap-2 font-medium">
+              <span className="text-emerald-400">🛡️</span> Πιστοποιημένα Προϊόντα ISO &amp; Ecolabel
+            </span>
+            <span className="flex items-center gap-2 font-medium">
+              <span className="text-emerald-400">⭐</span> Επαγγελματικές Λύσεις B2B &amp; Τιμές Χονδρικής
+            </span>
           </div>
         </div>
 
         {/* Header */}
-        <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
+        <header className="sticky top-[33px] z-40 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
           <div className="max-w-7xl mx-auto px-4 py-3.5 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-gradient-to-tr from-emerald-700 to-teal-500 text-white rounded-xl shadow-md">

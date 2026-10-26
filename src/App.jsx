@@ -564,7 +564,7 @@ export default function App() {
                     {/* Cloudflare Turnstile CAPTCHA */}
                     <div className="py-2 flex justify-center">
                       <Turnstile
-                        siteKey="1x00000000000000000000AA" // Test key (πάντα περνάει). Αντικατάστησέ το με το δικό σου Site Key από την Cloudflare όταν το ετοιμάσεις.
+                        siteKey="0x4AAAAAAFnDTfyGAy_p9hjM" // Test key (πάντα περνάει). Αντικατάστησέ το με το δικό σου Site Key από την Cloudflare όταν το ετοιμάσεις.
                         onSuccess={(token) => setCaptchaToken(token)}
                       />
                     </div>

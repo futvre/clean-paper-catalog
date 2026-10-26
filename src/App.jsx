@@ -4,6 +4,7 @@ import {
   FileText, ArrowRight, Send, Sparkles, Truck, Phone, 
   Mail, MapPin, Clock, Award 
 } from 'lucide-react';
+import { Turnstile } from '@marsidev/react-turnstile';
 
 export default function App() {
   const [products, setProducts] = useState([]);
@@ -17,6 +18,7 @@ export default function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   
   const [sendingOrder, setSendingOrder] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState('');
   const [customerInfo, setCustomerInfo] = useState({
     name: '',
     email: '',
@@ -103,7 +105,11 @@ export default function App() {
     e.preventDefault();
     if (cart.length === 0) return;
     if (!customerInfo.name || !customerInfo.email || !customerInfo.phone || !customerInfo.address) {
-      alert("Παρακαλώ συμπληρώστε τα υποχρεωτικά πεδία (Ονοματεπώνυμο, Email, Τηλέφωνο).");
+      alert("Παρακαλώ συμπληρώστε όλα τα υποχρεωτικά πεδία (Ονοματεπώνυμο, Email, Τηλέφωνο, Διεύθυνση).");
+      return;
+    }
+    if (!captchaToken) {
+      alert("Παρακαλώ ολοκληρώστε την επαλήθευση ασφαλείας (CAPTCHA).");
       return;
     }
 
@@ -116,7 +122,8 @@ export default function App() {
           customerInfo,
           cart,
           totalCartValue,
-          wholesaleUnlocked
+          wholesaleUnlocked,
+          captchaToken
         })
       });
       const data = await res.json();
@@ -124,6 +131,7 @@ export default function App() {
         alert('Η παραγγελία σας καταχωρήθηκε επιτυχώς! Σας στείλαμε email επιβεβαίωσης.');
         setCart([]);
         setCustomerInfo({ name: '', email: '', phone: '', company: '', address: '', notes: '' });
+        setCaptchaToken('');
         setIsCartOpen(false);
       } else {
         alert('Σφάλμα κατά την αποστολή: ' + (data.error || 'Δοκιμάστε ξανά'));
@@ -523,7 +531,6 @@ export default function App() {
                       <label className="text-[11px] font-bold text-slate-600 block mb-1">Εταιρεία / ΑΦΜ (Προαιρετικό)</label>
                       <input
                         type="text"
-                        required
                         placeholder="π.χ. Καφέ - Εστιατόριο Α.Ε. / 090000000"
                         value={customerInfo.company}
                         onChange={(e) => setCustomerInfo({...customerInfo, company: e.target.value})}
@@ -535,6 +542,7 @@ export default function App() {
                       <label className="text-[11px] font-bold text-slate-600 block mb-1">Διεύθυνση Αποστολής *</label>
                       <input
                         type="text"
+                        required
                         placeholder="Οδός, Αριθμός, Πόλη"
                         value={customerInfo.address}
                         onChange={(e) => setCustomerInfo({...customerInfo, address: e.target.value})}
@@ -551,6 +559,14 @@ export default function App() {
                         onChange={(e) => setCustomerInfo({...customerInfo, notes: e.target.value})}
                         className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-emerald-500"
                       ></textarea>
+                    </div>
+
+                    {/* Cloudflare Turnstile CAPTCHA */}
+                    <div className="py-2 flex justify-center">
+                      <Turnstile
+                        siteKey="1x00000000000000000000AA" // Test key (πάντα περνάει). Αντικατάστησέ το με το δικό σου Site Key από την Cloudflare όταν το ετοιμάσεις.
+                        onSuccess={(token) => setCaptchaToken(token)}
+                      />
                     </div>
 
                     <div className="border-t border-slate-200 pt-3 space-y-3 mt-4">

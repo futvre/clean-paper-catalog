@@ -165,7 +165,7 @@ export default function App() {
               <span className="text-emerald-400">⭐</span> Επαγγελματικές Λύσεις B2B &amp; Τιμές Χονδρικής
             </span>
             <span className="flex items-center gap-2 font-medium">
-              <span className="text-emerald-400">🚚</span> Δωρεάν μεταφορικά για παραγγελίες εντός Αττικής &gt;€150
+              <span className="text-emerald-400">🚚</span> Δωρεάν μεταφορικά για παραγγελίες εντός Θεσσαλονίκης &gt;€150
             </span>
             <span className="flex items-center gap-2 font-medium">
               <span className="text-emerald-400">🛡️</span> Πιστοποιημένα Προϊόντα ISO &amp; Ecolabel
@@ -185,7 +185,7 @@ export default function App() {
               </div>
               <div>
                 <h1 className="text-xl sm:text-2xl font-black tracking-tight bg-gradient-to-r from-emerald-800 via-teal-700 to-emerald-600 bg-clip-text text-transparent">
-                  Clean & Paper <span className="text-xs px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full font-bold uppercase tracking-wider ml-1">PRO</span>
+                  Clean & Paper <span className="text-xs px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full font-bold uppercase tracking-wider ml-1">TOP</span>
                 </h1>
                 <p className="text-xs text-slate-500 font-medium">Είδη Καθαρισμού & Χαρτικά για Σπίτια & Επιχειρήσεις</p>
               </div>
@@ -401,7 +401,7 @@ export default function App() {
               <div className="p-2 bg-emerald-600 text-white rounded-lg">
                 <Sparkles className="w-5 h-5" />
               </div>
-              <span className="text-lg font-black text-white tracking-tight">Clean & Paper PRO</span>
+              <span className="text-lg font-black text-white tracking-tight">Clean & Paper TOP</span>
             </div>
             <p className="text-slate-400 leading-relaxed">
               Εταιρεία εισαγωγής & αντιπροσωπείας επαγγελματικών συστημάτων καθαρισμού και χαρτικών.
@@ -440,7 +440,7 @@ export default function App() {
         </div>
 
         <div className="border-t border-slate-800 py-6 text-center text-slate-500">
-          <p>© 2026 Clean & Paper PRO Catalog. All rights reserved.</p>
+          <p>© 2026 Clean & Paper TOP Catalog. All rights reserved.</p>
         </div>
       </footer>
 

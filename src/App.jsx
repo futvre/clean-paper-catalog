@@ -102,7 +102,7 @@ export default function App() {
   const handleSendEmailOrder = async (e) => {
     e.preventDefault();
     if (cart.length === 0) return;
-    if (!customerInfo.name || !customerInfo.email || !customerInfo.phone) {
+    if (!customerInfo.name || !customerInfo.email || !customerInfo.phone || !customerInfo.address) {
       alert("Παρακαλώ συμπληρώστε τα υποχρεωτικά πεδία (Ονοματεπώνυμο, Email, Τηλέφωνο).");
       return;
     }
@@ -523,6 +523,7 @@ export default function App() {
                       <label className="text-[11px] font-bold text-slate-600 block mb-1">Εταιρεία / ΑΦΜ (Προαιρετικό)</label>
                       <input
                         type="text"
+                        required
                         placeholder="π.χ. Καφέ - Εστιατόριο Α.Ε. / 090000000"
                         value={customerInfo.company}
                         onChange={(e) => setCustomerInfo({...customerInfo, company: e.target.value})}
@@ -531,7 +532,7 @@ export default function App() {
                     </div>
 
                     <div>
-                      <label className="text-[11px] font-bold text-slate-600 block mb-1">Διεύθυνση Αποστολής</label>
+                      <label className="text-[11px] font-bold text-slate-600 block mb-1">Διεύθυνση Αποστολής *</label>
                       <input
                         type="text"
                         placeholder="Οδός, Αριθμός, Πόλη"

@@ -271,7 +271,7 @@ export default function App() {
               <div className="relative">
                 <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl blur opacity-30"></div>
                 <img 
-                  src="/hero-banner.jpg" 
+                  src="/hero-banner.jfif" 
                   alt="Cleaning & Paper Products" 
                   className="relative rounded-2xl shadow-2xl border border-slate-700/50 object-cover h-96 w-full"
                 />

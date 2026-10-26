@@ -24,11 +24,10 @@ export default async function handler(req, res) {
     // Δημιουργία λίστας προϊόντων σε κείμενο
     const itemsText = cart.map(item => {
       const price = wholesaleUnlocked ? item.wholesalePrice : item.retailPrice;
-      return `• ${item.title} (SKU: ${item.sku})
-  Ποσότητα: ${item.qty} | Τιμή Μονάδας: €${price.toFixed(2)} | Σύνολο: €${(price * item.qty).toFixed(2)}`;
+      return `• ${item.title} (SKU: ${item.sku})\n  Ποσότητα: ${item.qty} | Τιμή Μονάδας: €${price.toFixed(2)} | Σύνολο: €${(price * item.qty).toFixed(2)}`;
     }).join('\n\n');
 
-    // 📩 Email 1: Προς την εταιρεία (Εσένα)
+    // 📩 Email 1: Προς εσένα (με όλα τα στοιχεία της φόρμας)
     const ownerMailOptions = {
       from: process.env.EMAIL_USER,
       to: process.env.EMAIL_USER,
@@ -40,7 +39,7 @@ export default async function handler(req, res) {
 - Εταιρεία / ΑΦΜ: ${customerInfo.company || 'Δεν ορίστηκε'}
 - Τηλέφωνο: ${customerInfo.phone}
 - Email: ${customerInfo.email}
-- Διεύθυνση: ${customerInfo.address || 'Δεν ορίστηκε'}
+- Διεύθυνση Αποστολής: ${customerInfo.address || 'Δεν ορίστηκε'}
 - Σημειώσεις: ${customerInfo.notes || 'Καμία'}
 
 📦 ΠΡΟΪΟΝΤΑ:
@@ -65,6 +64,10 @@ ${itemsText}
 
 ----------------------------------------
 💰 ΣΥΝΟΛΟ: €${totalCartValue.toFixed(2)}
+
+📍 Στοιχεία Αποστολής:
+- Διεύθυνση: ${customerInfo.address || 'Δεν ορίστηκε'}
+- Τηλέφωνο: ${customerInfo.phone}
 
 Με εκτίμηση,
 Η ομάδα της Clean & Paper PRO

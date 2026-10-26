@@ -6,11 +6,40 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { customerInfo, cart, totalCartValue, wholesaleUnlocked } = req.body;
+    const { customerInfo, cart, totalCartValue, wholesaleUnlocked, captchaToken } = req.body;
+
+    // 🛡️ Επαλήθευση Cloudflare Turnstile Captcha
+    if (!captchaToken) {
+      return res.status(400).json({ success: false, message: 'Απαιτείται επαλήθευση ασφαλείας (CAPTCHA).' });
+    }
+
+    const verifyRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        secret: process.env.TURNSTILE_SECRET_KEY,
+        response: captchaToken
+      })
+    });
+
+    const verifyData = await verifyRes.json();
+    if (!verifyData.success) {
+      return res.status(400).json({ success: false, message: 'Η επαλήθευση ασφαλείας απέτυχε.' });
+    }
 
     if (!customerInfo || !customerInfo.email || !customerInfo.name || !customerInfo.address) {
-      return res.status(400).json({ success: false, message: 'Παρακαλώ συμπληρώστε όλα τα υποχρεωτικά πεδία (συμπεριλαμβανομένης της διεύθυνσης).' });
+      return res.status(400).json({ success: false, message: 'Παρακαλώ συμπληρώστε όλα τα υποχρεωτικά πεδία.' });
     }
+
+    // 🛡️ Καθαρισμός εισόδου κατά του Email Header Injection
+    const sanitize = (str) => typeof str === 'string' ? str.replace(/[\r\n]/g, ' ').trim() : '';
+    
+    const safeName = sanitize(customerInfo.name);
+    const safeCompany = sanitize(customerInfo.company);
+    const safePhone = sanitize(customerInfo.phone);
+    const safeEmail = sanitize(customerInfo.email);
+    const safeAddress = sanitize(customerInfo.address);
+    const safeNotes = sanitize(customerInfo.notes);
 
     // Ρύθμιση αποστολής μέσω Gmail
     const transporter = nodemailer.createTransport({
@@ -21,26 +50,25 @@ export default async function handler(req, res) {
       }
     });
 
-    // Δημιουργία λίστας προϊόντων σε απλό κείμενο (για το email προς εσένα)
     const itemsText = cart.map(item => {
       const price = wholesaleUnlocked ? item.wholesalePrice : item.retailPrice;
       return `• ${item.title} (SKU: ${item.sku})\n  Ποσότητα: ${item.qty} | Τιμή Μονάδας: €${price.toFixed(2)} | Σύνολο: €${(price * item.qty).toFixed(2)}`;
     }).join('\n\n');
 
-    // 📩 Email 1: Προς εσένα (αναλυτικό κείμενο)
+    // 📩 Email προς εσένα
     const ownerMailOptions = {
       from: process.env.EMAIL_USER,
       to: process.env.EMAIL_USER,
-      subject: `📦 Νέα Παραγγελία από: ${customerInfo.name} (${customerInfo.company || 'Ιδιώτης'})`,
+      subject: `📦 Νέα Παραγγελία από: ${safeName} (${safeCompany || 'Ιδιώτης'})`,
       text: `Έλαβες νέα παραγγελία από το site!
 
 👤 ΣΤΟΙΧΕΙΑ ΠΕΛΑΤΗ:
-- Ονοματεπώνυμο: ${customerInfo.name}
-- Εταιρεία / ΑΦΜ: ${customerInfo.company || 'Δεν ορίστηκε'}
-- Τηλέφωνο: ${customerInfo.phone}
-- Email: ${customerInfo.email}
-- Διεύθυνση Αποστολής: ${customerInfo.address}
-- Σημειώσεις: ${customerInfo.notes || 'Καμία'}
+- Ονοματεπώνυμο: ${safeName}
+- Εταιρεία / ΑΦΜ: ${safeCompany || 'Δεν ορίστηκε'}
+- Τηλέφωνο: ${safePhone}
+- Email: ${safeEmail}
+- Διεύθυνση Αποστολής: ${safeAddress}
+- Σημειώσεις: ${safeNotes || 'Καμία'}
 
 📦 ΠΡΟΪΟΝΤΑ:
 ${itemsText}
@@ -50,10 +78,10 @@ ${itemsText}
 Τύπος Τιμών: ${wholesaleUnlocked ? 'Χονδρική (B2B)' : 'Λιανική'}`
     };
 
-    // 📩 Email 2: Επιβεβαίωση Προς τον Πελάτη (Γραφικό / HTML)
+    // 📩 Email επιβεβαίωσης προς τον πελάτη (HTML)
     const customerMailOptions = {
       from: process.env.EMAIL_USER,
-      to: customerInfo.email,
+      to: safeEmail,
       subject: `📦 Επιβεβαίωση Παραγγελίας - Clean & Paper PRO`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0;">
@@ -63,7 +91,7 @@ ${itemsText}
           </div>
           
           <div style="padding: 20px 0;">
-            <p style="font-size: 16px; color: #1e293b;">Γεια σας <strong>${customerInfo.name}</strong>,</p>
+            <p style="font-size: 16px; color: #1e293b;">Γεια σας <strong>${safeName}</strong>,</p>
             <p style="font-size: 14px; color: #475569; line-height: 1.5;">
               Σας ευχαριστούμε θερμά για την παραγγελία σας! Λάβαμε το αίτημά σας και θα επικοινωνήσουμε άμεσα μαζί σας για την επιβεβαίωση και την παράδοση.
             </p>
@@ -94,15 +122,15 @@ ${itemsText}
             <div style="margin-top: 20px; background-color: #ecfdf5; padding: 15px; border-radius: 8px; border: 1px solid #a7f3d0;">
               <p style="margin: 0; font-size: 14px; color: #065f46; display: flex; justify-content: space-between;">
                 <strong>Συνολικό Ποσό:</strong> 
-                <span style="font-size: 18px; font-weight: bold; color: #047857;">€${totalCartValue.toFixed(2)}</span>
+                <span style="font-size: 18px; font-weight: bold; color: #047857;">€{totalCartValue.toFixed(2)}</span>
               </p>
             </div>
 
             <div style="margin-top: 20px; font-size: 13px; color: #475569;">
               <p style="margin: 5px 0;"><strong>📍 Στοιχεία Αποστολής:</strong></p>
-              <p style="margin: 3px 0;">Διεύθυνση: ${customerInfo.address}</p>
-              <p style="margin: 3px 0;">Τηλέφωνο: ${customerInfo.phone}</p>
-              ${customerInfo.company ? `<p style="margin: 3px 0;">Εταιρεία/ΑΦΜ: ${customerInfo.company}</p>` : ''}
+              <p style="margin: 3px 0;">Διεύθυνση: ${safeAddress}</p>
+              <p style="margin: 3px 0;">Τηλέφωνο: ${safePhone}</p>
+              ${safeCompany ? `<p style="margin: 3px 0;">Εταιρεία/ΑΦΜ: ${safeCompany}</p>` : ''}
             </div>
           </div>
 
@@ -113,7 +141,6 @@ ${itemsText}
       `
     };
 
-    // Αποστολή και των δύο email
     await transporter.sendMail(ownerMailOptions);
     await transporter.sendMail(customerMailOptions);
 

@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   try {
     const { customerInfo, cart, totalCartValue, wholesaleUnlocked, captchaToken } = req.body;
 
-    // 🛡️ 1. Επαλήθευση Cloudflare Turnstile Captcha (Κόβει τα bots)
+    // 🛡️ 1. Επαλήθευση Cloudflare Turnstile Captcha
     if (!captchaToken) {
       return res.status(400).json({ success: false, message: 'Απαιτείται επαλήθευση ασφαλείας (CAPTCHA).' });
     }
@@ -31,7 +31,7 @@ export default async function handler(req, res) {
       return res.status(400).json({ success: false, message: 'Παρακαλώ συμπληρώστε όλα τα υποχρεωτικά πεδία.' });
     }
 
-    // 🛡️ 2. Καθαρισμός εισόδου (Sanitization) κατά του Email Header Injection
+    // 🛡️ 2. Καθαρισμός εισόδου κατά του Email Header Injection
     const sanitize = (str) => typeof str === 'string' ? str.replace(/[\r\n]/g, ' ').trim() : '';
     
     const safeName = sanitize(customerInfo.name);
@@ -55,7 +55,6 @@ export default async function handler(req, res) {
       return `• ${item.title} (SKU: ${item.sku})\n  Ποσότητα: ${item.qty} | Τιμή Μονάδας: €${price.toFixed(2)} | Σύνολο: €${(price * item.qty).toFixed(2)}`;
     }).join('\n\n');
 
-    // 📩 Email προς εσένα
     const ownerMailOptions = {
       from: process.env.EMAIL_USER,
       to: process.env.EMAIL_USER,
@@ -78,7 +77,6 @@ ${itemsText}
 Τύπος Τιμών: ${wholesaleUnlocked ? 'Χονδρική (B2B)' : 'Λιανική'}`
     };
 
-    // 📩 Email επιβεβαίωσης προς τον πελάτη (HTML)
     const customerMailOptions = {
       from: process.env.EMAIL_USER,
       to: safeEmail,
@@ -122,7 +120,7 @@ ${itemsText}
             <div style="margin-top: 20px; background-color: #ecfdf5; padding: 15px; border-radius: 8px; border: 1px solid #a7f3d0;">
               <p style="margin: 0; font-size: 14px; color: #065f46; display: flex; justify-content: space-between;">
                 <strong>Συνολικό Ποσό:</strong> 
-                <span style="font-size: 18px; font-weight: bold; color: #047857;">€{totalCartValue.toFixed(2)}</span>
+                <span style="font-size: 18px; font-weight: bold; color: #047857;">€${totalCartValue.toFixed(2)}</span>
               </p>
             </div>
 
@@ -141,8 +139,11 @@ ${itemsText}
       `
     };
 
-    await transporter.sendMail(ownerMailOptions);
-    await transporter.sendMail(customerMailOptions);
+    // 🚀 ΒΕΛΤΙΩΣΗ ΤΑΧΥΤΗΤΑΣ: Αποστολή ΚΑΙ των δύο email ΤΑΥΤΟΧΡΟΝΑ (Παράλληλα)
+    await Promise.all([
+      transporter.sendMail(ownerMailOptions),
+      transporter.sendMail(customerMailOptions)
+    ]);
 
     return res.status(200).json({ success: true, message: 'Η παραγγελία καταχωρήθηκε επιτυχώς!' });
   } catch (error) {

@@ -81,8 +81,9 @@ export default function App() {
       setWholesaleUnlocked(true);
       setShowPinModal(false);
       setB2bPin("");
+      alert("Οι τιμές χονδρικής ενεργοποιήθηκαν!");
     } else {
-      alert("Λανθασμένος κωδικός B2B. Δοκιμάστε b2b2026");
+      alert("Λανθασμένος κωδικός B2B.");
     }
   };
 
@@ -96,7 +97,6 @@ export default function App() {
     });
   };
 
-  // ➕ Νέες συναρτήσεις διαχείρισης ποσότητας καλαθιού
   const updateCartQty = (id, delta) => {
     setCart((prev) => {
       return prev.map((item) => {
@@ -113,7 +113,6 @@ export default function App() {
     setCart((prev) => prev.filter((item) => item.id !== id));
   };
 
-  // Συνολικά τεμαχία για το badge του καλαθιού
   const totalCartItemsCount = cart.reduce((sum, item) => sum + item.qty, 0);
 
   const totalCartValue = cart.reduce((sum, item) => {
@@ -190,21 +189,12 @@ export default function App() {
               <span className="text-emerald-400">🛡️</span> Πιστοποιημένα Προϊόντα ISO &amp; Ecolabel
             </span>
             <span className="flex items-center gap-2 font-medium">
-              <span className="text-emerald-400">⭐</span> Επαγγελματικές Λύσεις B2B &amp; Τιμές Χονδρικής
-            </span>
-            <span className="flex items-center gap-2 font-medium">
-              <span className="text-emerald-400">🚚</span> Δωρεάν μεταφορικά για παραγγελίες εντός Θεσσαλονίκης &gt;€150
-            </span>
-            <span className="flex items-center gap-2 font-medium">
-              <span className="text-emerald-400">🛡️</span> Πιστοποιημένα Προϊόντα ISO &amp; Ecolabel
-            </span>
-            <span className="flex items-center gap-2 font-medium">
-              <span className="text-emerald-400">⭐</span> Επαγγελματικές Λύσεις B2B &amp; Τιμές Χονδρικής
+              <span className="text-emerald-400">⭐</span> Επαγγελματικές Λύσεις &amp; Ποιότητα
             </span>
           </div>
         </div>
 
-        {/* Header */}
+        {/* Header - Καθαρό μόνο με λογότυπο και καλάθι */}
         <header className="sticky top-[33px] z-40 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
           <div className="max-w-7xl mx-auto px-4 py-3.5 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -220,19 +210,6 @@ export default function App() {
             </div>
 
             <div className="flex items-center gap-3">
-              <button
-                onClick={() => wholesaleUnlocked ? setWholesaleUnlocked(false) : setShowPinModal(true)}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs sm:text-sm font-bold transition shadow-sm ${
-                  wholesaleUnlocked 
-                    ? 'bg-emerald-50 border-emerald-300 text-emerald-700 hover:bg-emerald-100' 
-                    : 'bg-slate-900 border-slate-800 text-white hover:bg-slate-800'
-                }`}
-              >
-                {wholesaleUnlocked ? <Unlock className="w-4 h-4 text-emerald-600" /> : <Lock className="w-4 h-4 text-amber-400" />}
-                <span className="hidden sm:inline">{wholesaleUnlocked ? "B2B Τιμές Ενεργές" : "Ξεκλείδωμα Χονδρικής"}</span>
-                <span className="sm:hidden">{wholesaleUnlocked ? "B2B ON" : "B2B PIN"}</span>
-              </button>
-
               <button
                 onClick={() => setIsCartOpen(true)}
                 className="relative p-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-md transition"
@@ -254,28 +231,22 @@ export default function App() {
           <div className="max-w-7xl mx-auto relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-7 space-y-6">
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/20 border border-emerald-500/30 rounded-full text-emerald-300 text-xs font-semibold">
-                <ShieldCheck className="w-4 h-4" /> Επίσημος Προμηθευτής Χονδρικής & Λιανικής
+                <ShieldCheck className="w-4 h-4" /> Επίσημος Προμηθευτής Οικιακών & Επαγγελματικών Ειδών
               </div>
               <h2 className="text-3xl sm:text-5xl font-black leading-tight tracking-tight">
-                Επαγγελματικά Χαρτικά & Καθαριστικά <span className="text-emerald-400">σε Τιμές Εργοστασίου</span>
+                Επαγγελματικά Χαρτικά & Καθαριστικά <span className="text-emerald-400">για κάθε Σπίτι & Χώρο</span>
               </h2>
               <p className="text-slate-300 text-sm sm:text-base leading-relaxed max-w-2xl">
-                Απευθείας τροφοδοσία για Σπίτια, Ξενοδοχεία, Χώρους Εστίασης, Γραφεία και Βιομηχανίες. 
-                Ανακαλύψτε προϊόντα υψηλής ποιότητας σε ανταγωνιστικές τιμές.
+                Ανακαλύψτε επώνυμα είδη καθαρισμού, χαρτικά και απορρυπαντικά υψηλής ποιότητας. 
+                Άμεση εξυπηρέτηση και παράδοση στον χώρο σας.
               </p>
 
               <div className="flex flex-wrap gap-4 pt-2">
-                <button 
-                  onClick={() => setShowPinModal(true)}
-                  className="px-6 py-3.5 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold rounded-xl shadow-lg transition flex items-center gap-2"
-                >
-                  Ξεκλείδωμα Τιμών Χονδρικής <ArrowRight className="w-4 h-4" />
-                </button>
                 <a 
                   href="#catalog"
-                  className="px-6 py-3.5 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl border border-white/20 transition backdrop-blur-sm"
+                  className="px-6 py-3.5 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-extrabold rounded-xl shadow-lg transition flex items-center gap-2"
                 >
-                  Περιήγηση Καταλόγου
+                  Περιήγηση Καταλόγου <ArrowRight className="w-4 h-4" />
                 </a>
               </div>
 
@@ -300,8 +271,8 @@ export default function App() {
               <div className="relative">
                 <div className="absolute -inset-1 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl blur opacity-30"></div>
                 <img 
-                  src="/hero-banner.jfif" 
-                  alt="Clean & Paper TOP Cleaning Products" 
+                  src="/hero-banner.jpg" 
+                  alt="Cleaning & Paper Products" 
                   className="relative rounded-2xl shadow-2xl border border-slate-700/50 object-cover h-96 w-full"
                 />
               </div>
@@ -384,14 +355,11 @@ export default function App() {
                   <div className="p-5 pt-0">
                     <div className="flex items-baseline justify-between mb-4 border-t border-slate-100 pt-3">
                       <div>
-                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Τιμή Μονάδας</span>
+                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Τιμή</span>
                         <div className="flex items-baseline gap-1.5">
                           <span className="text-2xl font-black text-slate-900">
                             €{(wholesaleUnlocked ? p.wholesalePrice : p.retailPrice).toFixed(2)}
                           </span>
-                          {wholesaleUnlocked && p.retailPrice > 0 && (
-                            <span className="text-xs text-slate-400 line-through font-semibold">€{p.retailPrice.toFixed(2)}</span>
-                          )}
                         </div>
                       </div>
 
@@ -421,7 +389,7 @@ export default function App() {
         </main>
       </div>
 
-      {/* FOOTER */}
+      {/* FOOTER - Με κρυφό/διακριτικό σύνδεσμο B2B */}
       <footer className="bg-slate-900 text-slate-400 text-xs border-t border-slate-800 mt-16">
         <div className="max-w-7xl mx-auto px-4 py-12 grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-4">
@@ -444,6 +412,13 @@ export default function App() {
               <li className="flex items-center gap-2"><Mail className="w-4 h-4 text-emerald-400" /> orders@cleanpaper.gr</li>
               <li className="flex items-center gap-2"><Clock className="w-4 h-4 text-emerald-400" /> Δευτ - Παρ: 08:00 - 17:00</li>
             </ul>
+            {/* Διακριτικό B2B Login στο footer */}
+            <button
+              onClick={() => setShowPinModal(true)}
+              className="mt-4 text-slate-500 hover:text-emerald-400 text-[11px] underline transition block"
+            >
+              {wholesaleUnlocked ? "🔒 B2B Ενεργό (Αποσύνδεση)" : "🔐 Είσοδος Συνεργατών / Χονδρική"}
+            </button>
           </div>
 
           <div>
@@ -500,7 +475,6 @@ export default function App() {
                             <h4 className="font-bold text-xs text-slate-900 line-clamp-1">{item.title}</h4>
                             <span className="text-[11px] text-slate-500 block mb-2">SKU: {item.sku}</span>
                             
-                            {/* Κουμπιά ποσότητας & αφαίρεσης */}
                             <div className="flex items-center gap-3">
                               <div className="inline-flex items-center border border-slate-300 rounded-lg bg-white overflow-hidden shadow-xs">
                                 <button 
@@ -621,7 +595,6 @@ export default function App() {
                       ></textarea>
                     </div>
 
-                    {/* Cloudflare Turnstile CAPTCHA */}
                     <div className="py-2 flex justify-center">
                       <Turnstile
                         siteKey="1x00000000000000000000AA"

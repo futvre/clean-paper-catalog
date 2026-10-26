@@ -96,6 +96,26 @@ export default function App() {
     });
   };
 
+  // ➕ Νέες συναρτήσεις διαχείρισης ποσότητας καλαθιού
+  const updateCartQty = (id, delta) => {
+    setCart((prev) => {
+      return prev.map((item) => {
+        if (item.id === id) {
+          const newQty = item.qty + delta;
+          return newQty > 0 ? { ...item, qty: newQty } : null;
+        }
+        return item;
+      }).filter(Boolean);
+    });
+  };
+
+  const removeFromCart = (id) => {
+    setCart((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  // Συνολικά τεμαχία για το badge του καλαθιού
+  const totalCartItemsCount = cart.reduce((sum, item) => sum + item.qty, 0);
+
   const totalCartValue = cart.reduce((sum, item) => {
     const price = wholesaleUnlocked ? item.wholesalePrice : item.retailPrice;
     return sum + price * item.qty;
@@ -218,9 +238,9 @@ export default function App() {
                 className="relative p-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-md transition"
               >
                 <ShoppingCart className="w-5 h-5" />
-                {cart.length > 0 && (
+                {totalCartItemsCount > 0 && (
                   <span className="absolute -top-1.5 -right-1.5 bg-amber-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-black shadow-sm">
-                    {cart.length}
+                    {totalCartItemsCount}
                   </span>
                 )}
               </button>
@@ -459,7 +479,7 @@ export default function App() {
             <div>
               <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
                 <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
-                  <ShoppingCart className="w-5 h-5 text-emerald-600" /> Λίστα Παραγγελίας
+                  <ShoppingCart className="w-5 h-5 text-emerald-600" /> Λίστα Παραγγελίας ({totalCartItemsCount} τεμ.)
                 </h2>
                 <button onClick={() => setIsCartOpen(false)} className="text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
               </div>
@@ -471,18 +491,58 @@ export default function App() {
                 </div>
               ) : (
                 <>
-                  <div className="space-y-3 max-h-48 overflow-y-auto pr-2 mb-6 border-b border-slate-100 pb-4">
-                    {cart.map((item) => (
-                      <div key={item.id} className="flex justify-between items-center bg-slate-50 p-2.5 rounded-xl">
-                        <div>
-                          <h4 className="font-bold text-xs text-slate-900">{item.title}</h4>
-                          <span className="text-[11px] text-slate-500">Ποσότητα: {item.qty} | SKU: {item.sku}</span>
+                  <div className="space-y-3 max-h-56 overflow-y-auto pr-2 mb-6 border-b border-slate-100 pb-4">
+                    {cart.map((item) => {
+                      const itemPrice = wholesaleUnlocked ? item.wholesalePrice : item.retailPrice;
+                      return (
+                        <div key={item.id} className="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
+                          <div className="flex-1 pr-2">
+                            <h4 className="font-bold text-xs text-slate-900 line-clamp-1">{item.title}</h4>
+                            <span className="text-[11px] text-slate-500 block mb-2">SKU: {item.sku}</span>
+                            
+                            {/* Κουμπιά ποσότητας & αφαίρεσης */}
+                            <div className="flex items-center gap-3">
+                              <div className="inline-flex items-center border border-slate-300 rounded-lg bg-white overflow-hidden shadow-xs">
+                                <button 
+                                  type="button" 
+                                  onClick={() => updateCartQty(item.id, -1)}
+                                  className="px-2.5 py-1 text-xs font-bold text-slate-600 hover:bg-slate-100 transition"
+                                >
+                                  -
+                                </button>
+                                <span className="px-3 py-1 text-xs font-black text-emerald-700 bg-emerald-50">
+                                  {item.qty}
+                                </span>
+                                <button 
+                                  type="button" 
+                                  onClick={() => updateCartQty(item.id, 1)}
+                                  className="px-2.5 py-1 text-xs font-bold text-slate-600 hover:bg-slate-100 transition"
+                                >
+                                  +
+                                </button>
+                              </div>
+
+                              <button 
+                                type="button"
+                                onClick={() => removeFromCart(item.id)}
+                                className="text-[11px] text-red-500 hover:text-red-700 font-bold underline transition"
+                              >
+                                Αφαίρεση
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="text-right">
+                            <span className="font-extrabold text-slate-900 text-sm block">
+                              €{(itemPrice * item.qty).toFixed(2)}
+                            </span>
+                            <span className="text-[10px] text-slate-400">
+                              (€{itemPrice.toFixed(2)}/τεμ.)
+                            </span>
+                          </div>
                         </div>
-                        <span className="font-extrabold text-slate-900 text-sm">
-                          €{((wholesaleUnlocked ? item.wholesalePrice : item.retailPrice) * item.qty).toFixed(2)}
-                        </span>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
 
                   <form onSubmit={handleSendEmailOrder} className="space-y-3">
@@ -564,7 +624,7 @@ export default function App() {
                     {/* Cloudflare Turnstile CAPTCHA */}
                     <div className="py-2 flex justify-center">
                       <Turnstile
-                        siteKey="1x00000000000000000000AA" // Test key (πάντα περνάει). Αντικατάστησέ το με το δικό σου Site Key από την Cloudflare όταν το ετοιμάσεις.
+                        siteKey="1x00000000000000000000AA"
                         onSuccess={(token) => setCaptchaToken(token)}
                       />
                     </div>

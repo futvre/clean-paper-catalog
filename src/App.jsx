@@ -15,6 +15,16 @@ export default function App() {
   const [showPinModal, setShowPinModal] = useState(false);
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  
+  const [sendingOrder, setSendingOrder] = useState(false);
+  const [customerInfo, setCustomerInfo] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    company: '',
+    address: '',
+    notes: ''
+  });
 
   // 1. Φόρτωση από το Vercel API
   useEffect(() => {
@@ -50,7 +60,6 @@ export default function App() {
       });
   }, []);
 
-  // 2. Δυναμικές κατηγορίες
   const categories = useMemo(() => {
     const cats = new Set(products.map((p) => p.category).filter(Boolean));
     return ["Όλα", ...Array.from(cats)];
@@ -90,14 +99,40 @@ export default function App() {
     return sum + price * item.qty;
   }, 0);
 
-  const generateOrderText = () => {
-    let text = `📦 *ΝΕΑ ΠΑΡΑΓΓΕΛΙΑ B2B*\n\n`;
-    cart.forEach((item) => {
-      const price = wholesaleUnlocked ? item.wholesalePrice : item.retailPrice;
-      text += `• ${item.title} (${item.sku})\n  Ποσότητα: ${item.qty} | Τιμή: €${(price * item.qty).toFixed(2)}\n`;
-    });
-    text += `\n💰 *Σύνολο:* €${totalCartValue.toFixed(2)}`;
-    return encodeURIComponent(text);
+  const handleSendEmailOrder = async (e) => {
+    e.preventDefault();
+    if (cart.length === 0) return;
+    if (!customerInfo.name || !customerInfo.email || !customerInfo.phone) {
+      alert("Παρακαλώ συμπληρώστε τα υποχρεωτικά πεδία (Ονοματεπώνυμο, Email, Τηλέφωνο).");
+      return;
+    }
+
+    setSendingOrder(true);
+    try {
+      const res = await fetch('/api/send-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerInfo,
+          cart,
+          totalCartValue,
+          wholesaleUnlocked
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert('Η παραγγελία σας καταχωρήθηκε επιτυχώς! Σας στείλαμε email επιβεβαίωσης.');
+        setCart([]);
+        setCustomerInfo({ name: '', email: '', phone: '', company: '', address: '', notes: '' });
+        setIsCartOpen(false);
+      } else {
+        alert('Σφάλμα κατά την αποστολή: ' + (data.error || 'Δοκιμάστε ξανά'));
+      }
+    } catch (err) {
+      alert('Σφάλμα σύνδεσης με τον διακομιστή.');
+    } finally {
+      setSendingOrder(false);
+    }
   };
 
   return (
@@ -129,7 +164,6 @@ export default function App() {
             <span className="flex items-center gap-2 font-medium">
               <span className="text-emerald-400">⭐</span> Επαγγελματικές Λύσεις B2B &amp; Τιμές Χονδρικής
             </span>
-            {/* Διπλή καταχώρηση για ομαλό infinite loop */}
             <span className="flex items-center gap-2 font-medium">
               <span className="text-emerald-400">🚚</span> Δωρεάν μεταφορικά για παραγγελίες εντός Αττικής &gt;€150
             </span>
@@ -153,7 +187,7 @@ export default function App() {
                 <h1 className="text-xl sm:text-2xl font-black tracking-tight bg-gradient-to-r from-emerald-800 via-teal-700 to-emerald-600 bg-clip-text text-transparent">
                   Clean & Paper <span className="text-xs px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full font-bold uppercase tracking-wider ml-1">PRO</span>
                 </h1>
-                <p className="text-xs text-slate-500 font-medium">Επαγγελματικές Λύσεις Καθαρισμού & Χαρτικών</p>
+                <p className="text-xs text-slate-500 font-medium">Είδη Καθαρισμού & Χαρτικά για Σπίτια & Επιχειρήσεις</p>
               </div>
             </div>
 
@@ -192,14 +226,14 @@ export default function App() {
           <div className="max-w-7xl mx-auto relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-7 space-y-6">
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/20 border border-emerald-500/30 rounded-full text-emerald-300 text-xs font-semibold">
-                <ShieldCheck className="w-4 h-4" /> Επίσημος Προμηθευτής Χονδρικής B2B
+                <ShieldCheck className="w-4 h-4" /> Επίσημος Προμηθευτής Χονδρικής & Λιανικής
               </div>
               <h2 className="text-3xl sm:text-5xl font-black leading-tight tracking-tight">
                 Επαγγελματικά Χαρτικά & Καθαριστικά <span className="text-emerald-400">σε Τιμές Εργοστασίου</span>
               </h2>
               <p className="text-slate-300 text-sm sm:text-base leading-relaxed max-w-2xl">
-                Άμεση τροφοδοσία για Ξενοδοχεία, Χώρους Εστίασης, Γραφεία και Βιομηχανίες. 
-                Αποκτήστε πρόσβαση στον κατάλογο B2B με ειδικές εκπτώσεις όγκου και δωρεάν παράδοση.
+                Απευθείας τροφοδοσία για Σπίτια, Ξενοδοχεία, Χώρους Εστίασης, Γραφεία και Βιομηχανίες. 
+                Ανακαλύψτε προϊόντα υψηλής ποιότητας σε ανταγωνιστικές τιμές.
               </p>
 
               <div className="flex flex-wrap gap-4 pt-2">
@@ -249,7 +283,6 @@ export default function App() {
 
         {/* Main Catalog Container */}
         <main id="catalog" className="max-w-7xl mx-auto px-4 py-12">
-          {/* Search & Filters Header */}
           <div className="flex flex-col md:flex-row gap-4 justify-between items-center mb-8 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
             <div className="relative w-full md:w-96">
               <Search className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400" />
@@ -279,7 +312,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* Product Grid / Loading State */}
           {loading ? (
             <div className="flex justify-center items-center py-20">
               <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-emerald-600"></div>
@@ -290,7 +322,6 @@ export default function App() {
               {filteredProducts.map((p) => (
                 <div key={p.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between overflow-hidden group">
                   <div>
-                    {/* Product Image Header */}
                     <div className="relative h-48 bg-slate-100 overflow-hidden">
                       <img 
                         src={p.image} 
@@ -373,12 +404,12 @@ export default function App() {
               <span className="text-lg font-black text-white tracking-tight">Clean & Paper PRO</span>
             </div>
             <p className="text-slate-400 leading-relaxed">
-              Εταιρεία εισαγωγής & αντιπροσωπείας επαγγελματικών συστημάτων καθαρισμού και χαρτικών. Προμηθευτής B2B για περισσότερες από 1.000 επιχειρήσεις.
+              Εταιρεία εισαγωγής & αντιπροσωπείας επαγγελματικών συστημάτων καθαρισμού και χαρτικών.
             </p>
           </div>
 
           <div>
-            <h4 className="text-sm font-bold text-white mb-4 uppercase tracking-wider">Επικοινωνία B2B</h4>
+            <h4 className="text-sm font-bold text-white mb-4 uppercase tracking-wider">Επικοινωνία</h4>
             <ul className="space-y-2.5">
               <li className="flex items-center gap-2"><MapPin className="w-4 h-4 text-emerald-400" /> Βιομηχανική Περιοχή, Αθήνα</li>
               <li className="flex items-center gap-2"><Phone className="w-4 h-4 text-emerald-400" /> +30 210 0000000</li>
@@ -388,7 +419,7 @@ export default function App() {
           </div>
 
           <div>
-            <h4 className="text-sm font-bold text-white mb-4 uppercase tracking-wider">Κατηγορίες B2B</h4>
+            <h4 className="text-sm font-bold text-white mb-4 uppercase tracking-wider">Κατηγορίες</h4>
             <ul className="space-y-2">
               <li><a href="#" className="hover:text-emerald-400 transition">Χαρτικά Επαγγελματικά Jumbo</a></li>
               <li><a href="#" className="hover:text-emerald-400 transition">Χειροπετσέτες Z-Fold & C-Fold</a></li>
@@ -413,14 +444,14 @@ export default function App() {
         </div>
       </footer>
 
-      {/* Cart Drawer */}
+      {/* Cart Drawer με Φόρμα Στοιχείων Πελάτη */}
       {isCartOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex justify-end">
-          <div className="w-full max-w-md bg-white h-full p-6 flex flex-col justify-between shadow-2xl">
+          <div className="w-full max-w-lg bg-white h-full p-6 flex flex-col justify-between shadow-2xl overflow-y-auto">
             <div>
               <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
                 <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
-                  <ShoppingCart className="w-5 h-5 text-emerald-600" /> Λίστα Παραγγελίας B2B
+                  <ShoppingCart className="w-5 h-5 text-emerald-600" /> Λίστα Παραγγελίας
                 </h2>
                 <button onClick={() => setIsCartOpen(false)} className="text-slate-400 hover:text-slate-600 font-bold text-lg">✕</button>
               </div>
@@ -431,39 +462,114 @@ export default function App() {
                   <p className="text-slate-500 font-medium">Η λίστα σας είναι άδεια.</p>
                 </div>
               ) : (
-                <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-                  {cart.map((item) => (
-                    <div key={item.id} className="flex justify-between items-center border-b border-slate-100 pb-3">
-                      <div>
-                        <h4 className="font-bold text-xs text-slate-900">{item.title}</h4>
-                        <span className="text-[11px] text-slate-500">Ποσότητα: {item.qty} | SKU: {item.sku}</span>
+                <>
+                  <div className="space-y-3 max-h-48 overflow-y-auto pr-2 mb-6 border-b border-slate-100 pb-4">
+                    {cart.map((item) => (
+                      <div key={item.id} className="flex justify-between items-center bg-slate-50 p-2.5 rounded-xl">
+                        <div>
+                          <h4 className="font-bold text-xs text-slate-900">{item.title}</h4>
+                          <span className="text-[11px] text-slate-500">Ποσότητα: {item.qty} | SKU: {item.sku}</span>
+                        </div>
+                        <span className="font-extrabold text-slate-900 text-sm">
+                          €{((wholesaleUnlocked ? item.wholesalePrice : item.retailPrice) * item.qty).toFixed(2)}
+                        </span>
                       </div>
-                      <span className="font-extrabold text-slate-900 text-sm">
-                        €{((wholesaleUnlocked ? item.wholesalePrice : item.retailPrice) * item.qty).toFixed(2)}
-                      </span>
+                    ))}
+                  </div>
+
+                  <form onSubmit={handleSendEmailOrder} className="space-y-3">
+                    <h3 className="text-sm font-bold text-slate-900 mb-2 border-b border-slate-100 pb-1">
+                      Στοιχεία Αποστολής & Επικοινωνίας
+                    </h3>
+
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-600 block mb-1">Ονοματεπώνυμο *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="π.χ. Γιώργος Παπαδόπουλος"
+                        value={customerInfo.name}
+                        onChange={(e) => setCustomerInfo({...customerInfo, name: e.target.value})}
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
                     </div>
-                  ))}
-                </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[11px] font-bold text-slate-600 block mb-1">Email *</label>
+                        <input
+                          type="email"
+                          required
+                          placeholder="name@domain.gr"
+                          value={customerInfo.email}
+                          onChange={(e) => setCustomerInfo({...customerInfo, email: e.target.value})}
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-emerald-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-bold text-slate-600 block mb-1">Τηλέφωνο *</label>
+                        <input
+                          type="tel"
+                          required
+                          placeholder="6900000000"
+                          value={customerInfo.phone}
+                          onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})}
+                          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-emerald-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-600 block mb-1">Εταιρεία / ΑΦΜ (Προαιρετικό)</label>
+                      <input
+                        type="text"
+                        placeholder="π.χ. Καφέ - Εστιατόριο Α.Ε. / 090000000"
+                        value={customerInfo.company}
+                        onChange={(e) => setCustomerInfo({...customerInfo, company: e.target.value})}
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-600 block mb-1">Διεύθυνση Αποστολής</label>
+                      <input
+                        type="text"
+                        placeholder="Οδός, Αριθμός, Πόλη"
+                        value={customerInfo.address}
+                        onChange={(e) => setCustomerInfo({...customerInfo, address: e.target.value})}
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-[11px] font-bold text-slate-600 block mb-1">Σημειώσεις</label>
+                      <textarea
+                        rows="2"
+                        placeholder="Ειδικές οδηγίες παράδοσης..."
+                        value={customerInfo.notes}
+                        onChange={(e) => setCustomerInfo({...customerInfo, notes: e.target.value})}
+                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none focus:ring-2 focus:ring-emerald-500"
+                      ></textarea>
+                    </div>
+
+                    <div className="border-t border-slate-200 pt-3 space-y-3 mt-4">
+                      <div className="flex justify-between items-center">
+                        <span className="font-bold text-slate-700 text-sm">Σύνολο:</span>
+                        <span className="text-2xl font-black text-emerald-600">€{totalCartValue.toFixed(2)}</span>
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={sendingOrder}
+                        className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg transition disabled:opacity-50"
+                      >
+                        <Send className="w-4 h-4" /> {sendingOrder ? 'Αποστολή...' : 'Καταχώρηση Παραγγελίας'}
+                      </button>
+                    </div>
+                  </form>
+                </>
               )}
             </div>
-
-            {cart.length > 0 && (
-              <div className="border-t border-slate-200 pt-4 space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="font-bold text-slate-700">Σύνολο (προ ΦΠΑ):</span>
-                  <span className="text-2xl font-black text-emerald-600">€{totalCartValue.toFixed(2)}</span>
-                </div>
-
-                <a
-                  href={`https://wa.me/?text=${generateOrderText()}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg transition"
-                >
-                  <Send className="w-4 h-4" /> Αποστολή Παραγγελίας στο WhatsApp
-                </a>
-              </div>
-            )}
           </div>
         </div>
       )}
